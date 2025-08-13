@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - DATABASE_URL=file:./data/sistemaadm.db
+      - REDIS_URL=redis://redis:6379
+      - WA_SESSION_PATH=/app/storage/session
+      - WA_LOG_LEVEL=info
+      - API_CORS_ENABLED=true
+      - API_RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_MSGS_PER_MIN=12
+      - CLUB_NAME=ROYAL CLUB
+    volumes:
+      - ./data:/app/data
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - royal-club-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - royal-club-network
+
+  python-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    environment:
+      - PYTHONPATH=/app/src
+      - DATABASE_URL=file:./data/sistemaadm.db
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - royal-club-network
+
+volumes:
+  redis_data:
+
+networks:
+  royal-club-network:
+    driver: bridge

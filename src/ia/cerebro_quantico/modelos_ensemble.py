@@ -148,6 +148,6 @@ class ModelosEnsembleSupremo:
         
         # Baixa variação = alta confiança
         variacao = np.std(valores) / np.mean(valores) if np.mean(valores) != 0 else 1
-        confianca = max(0, min(1, 1 - variacao))
+        confianca = max(0.0, min(1.0, 1.0 - float(variacao)))
         
         return confianca

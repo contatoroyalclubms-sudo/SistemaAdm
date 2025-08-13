@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY config/ ./config/
+
+# Create necessary directories
+RUN mkdir -p data logs
+
+# Set Python path
+ENV PYTHONPATH=/app/src
+
+# Expose port for AI services
+EXPOSE 8001
+
+# Start the AI service
+CMD ["python", "-m", "src.ia.cerebro_quantico.modelos_ensemble"]
