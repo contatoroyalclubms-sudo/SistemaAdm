@@ -82,7 +82,9 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
         logQR: false,
         browserArgs: chromeFlags,
         puppeteerOptions: {
-          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
+          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+          protocolTimeout: 120000,
+          timeout: 120000
         }
       });
 
