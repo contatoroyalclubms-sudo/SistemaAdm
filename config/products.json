@@ -1,0 +1,152 @@
+{
+  "event": {
+    "id": "mc-daniel-2025",
+    "name": "MC Daniel Falcão na Royal Club",
+    "date": "2025-02-15T22:00:00.000Z",
+    "openingTime": "2025-02-15T20:00:00.000Z",
+    "headliner": "MC Daniel Falcão",
+    "description": "Uma noite inesquecível com o fenômeno do funk brasileiro",
+    "venue": "Royal Club",
+    "status": "ACTIVE"
+  },
+  "lots": [
+    {
+      "name": "1º Lote - Promoção",
+      "validUntil": "2025-01-15T23:59:59.000Z",
+      "isActive": true
+    },
+    {
+      "name": "2º Lote - Regular",
+      "validUntil": "2025-02-01T23:59:59.000Z",
+      "isActive": false
+    },
+    {
+      "name": "3º Lote - Última Chamada",
+      "validUntil": "2025-02-14T23:59:59.000Z",
+      "isActive": false
+    }
+  ],
+  "products": [
+    {
+      "type": "INGRESSO",
+      "name": "Ingresso Individual",
+      "description": "Acesso ao show + 1 drink de cortesia",
+      "capacity": 500,
+      "price": 80.00,
+      "features": [
+        "Acesso a pista",
+        "1 drink de cortesia",
+        "Segurança 24h",
+        "Estacionamento disponível"
+      ],
+      "isActive": true
+    },
+    {
+      "type": "BISTRO",
+      "name": "Mesa Bistrô",
+      "description": "Mesa reservada para até 6 pessoas com vista privilegiada",
+      "capacity": 6,
+      "minimumConsumption": 300.00,
+      "price": 150.00,
+      "features": [
+        "Mesa reservada para 6 pessoas",
+        "Vista privilegiada do palco",
+        "Consumação mínima R$ 300",
+        "Atendimento exclusivo",
+        "Cardápio premium"
+      ],
+      "sectorMap": {
+        "sectors": [
+          {
+            "id": "bistro-a",
+            "name": "Setor A - Frente",
+            "capacity": 10,
+            "available": 7
+          },
+          {
+            "id": "bistro-b", 
+            "name": "Setor B - Lateral",
+            "capacity": 15,
+            "available": 12
+          }
+        ]
+      },
+      "isActive": true
+    },
+    {
+      "type": "CAMAROTE",
+      "name": "Camarote VIP",
+      "description": "Experiência completa com área VIP exclusiva",
+      "capacity": 10,
+      "minimumConsumption": 800.00,
+      "price": 250.00,
+      "features": [
+        "Área VIP exclusiva para 10 pessoas",
+        "Vista panorâmica do show",
+        "Consumação mínima R$ 800",
+        "Open bar premium (2h)",
+        "Petiscos inclusos",
+        "Atendimento personalizado",
+        "Entrada VIP",
+        "Banheiro exclusivo"
+      ],
+      "sectorMap": {
+        "sectors": [
+          {
+            "id": "camarote-1",
+            "name": "Camarote Central",
+            "capacity": 2,
+            "available": 1
+          },
+          {
+            "id": "camarote-2",
+            "name": "Camarote Lateral",
+            "capacity": 3,
+            "available": 2
+          }
+        ]
+      },
+      "isActive": true
+    }
+  ],
+  "upsellRules": {
+    "INGRESSO": {
+      "suggest": "BISTRO",
+      "message": "💡 Que tal um upgrade para mesa bistrô? Mais conforto e vista privilegiada por apenas R$ 70 a mais!"
+    },
+    "BISTRO": {
+      "suggest": "CAMAROTE",
+      "message": "✨ Upgrade para camarote VIP e tenha uma experiência completa com open bar incluído!"
+    }
+  },
+  "paymentMethods": {
+    "pix": {
+      "enabled": true,
+      "discount": 0.05,
+      "message": "🎯 5% de desconto pagando via PIX!"
+    },
+    "creditCard": {
+      "enabled": true,
+      "installments": {
+        "max": 3,
+        "minAmount": 100.00
+      }
+    },
+    "debitCard": {
+      "enabled": true
+    }
+  },
+  "businessRules": {
+    "maxReservationTime": 30,
+    "maxPeoplePerReservation": 20,
+    "minAdvanceBooking": 24,
+    "autoConfirmPayment": true,
+    "waitingListEnabled": true
+  },
+  "messages": {
+    "soldOut": "😔 Infelizmente este produto está esgotado!\n\nPosso te colocar na lista de espera ou mostrar outras opções disponíveis?",
+    "expiredReservation": "⏰ Sua reserva expirou, mas posso fazer uma nova para você!\n\nGostaria de tentar novamente?",
+    "paymentConfirmed": "🎉 Pagamento confirmado!\n\nSua reserva está garantida. Em breve você receberá todos os detalhes por e-mail.",
+    "escalateToHuman": "👨‍💼 Vou transferir você para um de nossos especialistas em atendimento.\n\nEm instantes alguém entrará em contato!"
+  }
+}

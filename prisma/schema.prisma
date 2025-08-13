@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  date        DateTime
+  openingTime DateTime
+  headliner   String   @default("MC Daniel Falcão")
+  description String?
+  venue       String   @default("Royal Club")
+  status      String   @default("ACTIVE") // EventStatus as string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  lots        Lot[]
+  products    Product[]
+  reservations Reservation[]
+  
+  @@map("events")
+}
+
+model Lot {
+  id       String   @id @default(cuid())
+  name     String
+  price    Float
+  validUntil DateTime
+  isActive Boolean  @default(true)
+  eventId  String
+  
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("lots")
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  type            String      // ProductType as string
+  name            String
+  description     String?
+  capacity        Int
+  minimumConsumption Float?
+  price           Float
+  sectorMap       String?     // JSON string for sector mapping
+  isActive        Boolean     @default(true)
+  eventId         String
+  
+  event           Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  reservations    Reservation[]
+  
+  @@map("products")
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  name        String
+  phone       String
+  cpf         String?
+  email       String?
+  source      String     @default("whatsapp")
+  status      String     @default("NEW") // LeadStatus as string
+  notes       String?
+  lastContact DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  reservations Reservation[]
+  interactions Interaction[]
+  
+  @@unique([phone])
+  @@map("leads")
+}
+
+model Reservation {
+  id          String           @id @default(cuid())
+  quantity    Int
+  totalAmount Float
+  status      String           @default("PENDING") // ReservationStatus as string
+  notes       String?
+  paymentMethod String?
+  paymentId   String?          // Stripe payment intent ID
+  expiresAt   DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  leadId      String
+  productId   String
+  eventId     String
+  
+  lead        Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  product     Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("reservations")
+}
+
+model Interaction {
+  id          String          @id @default(cuid())
+  type        String          // InteractionType as string
+  content     String
+  metadata    String?         // JSON string for additional data
+  timestamp   DateTime        @default(now())
+  
+  leadId      String
+  lead        Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@map("interactions")
+}
+
+model Config {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   // JSON string
+  description String?
+  updatedAt   DateTime @updatedAt
+  
+  @@map("configs")
+}
+
+// Enums are not supported in SQLite, using string values instead
+// EventStatus: DRAFT, ACTIVE, SOLD_OUT, CANCELLED, FINISHED
+// ProductType: CAMAROTE, BISTRO, INGRESSO
+// LeadStatus: NEW, CONTACTED, INTERESTED, QUALIFIED, PROPOSAL_SENT, NEGOTIATING, CONVERTED, LOST
+// ReservationStatus: PENDING, PAYMENT_PENDING, CONFIRMED, CANCELLED, EXPIRED
+// InteractionType: MESSAGE_RECEIVED, MESSAGE_SENT, CALL_MADE, EMAIL_SENT, NOTE_ADDED, STATUS_CHANGED
