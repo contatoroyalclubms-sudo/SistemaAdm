@@ -2,8 +2,9 @@ import { ILeadRepository } from '@/domain/repositories/ILeadRepository';
 import { IProductRepository } from '@/domain/repositories/IProductRepository';
 import { IEventRepository } from '@/domain/repositories/IEventRepository';
 import { IReservationRepository } from '@/domain/repositories/IReservationRepository';
-import { LeadEntity, LeadStatus, InteractionType } from '@/domain/entities/Lead';
-import { ProductType } from '@/domain/entities/Product';
+import { Lead, LeadEntity, LeadStatus, InteractionType } from '@/domain/entities/Lead';
+import { Product, ProductEntity, ProductType } from '@/domain/entities/Product';
+import { Event, EventEntity } from '@/domain/entities/Event';
 import { ReservationEntity } from '@/domain/entities/Reservation';
 import { logger, logSalesEvent } from '@/shared/logger';
 
@@ -23,22 +24,67 @@ export class SalesFunnelUseCase {
     private reservationRepository: IReservationRepository
   ) {}
 
+  private convertToLeadEntity(lead: Lead): LeadEntity {
+    const entity = new LeadEntity(lead.id, lead.name, lead.phone);
+    entity.cpf = lead.cpf;
+    entity.email = lead.email;
+    entity.status = lead.status;
+    entity.interactions = lead.interactions;
+    entity.createdAt = lead.createdAt;
+    entity.updatedAt = lead.updatedAt;
+    return entity;
+  }
+
+  private convertToProductEntity(product: Product): ProductEntity {
+    return new ProductEntity(
+      product.id,
+      product.type,
+      product.name,
+      product.description,
+      product.capacity,
+      product.minimumConsumption,
+      product.price,
+      product.sectorMap,
+      product.isActive,
+      product.eventId
+    );
+  }
+
+  private convertToEventEntity(event: Event): EventEntity {
+    const entity = new EventEntity(
+      event.id,
+      event.name,
+      event.date,
+      event.openingTime,
+      event.headliner,
+      event.description,
+      event.venue,
+      event.status,
+      event.lots,
+      event.createdAt,
+      event.updatedAt
+    );
+    return entity;
+  }
+
   async processMessage(phone: string, message: string, customerName?: string): Promise<SalesFunnelResponse> {
     try {
       // Find or create lead
-      let lead = await this.leadRepository.findByPhone(phone);
+      let leadData = await this.leadRepository.findByPhone(phone);
+      let leadEntity: LeadEntity;
       
-      if (!lead && customerName) {
-        lead = new LeadEntity(
+      if (!leadData && customerName) {
+        leadEntity = new LeadEntity(
           `lead_${Date.now()}`,
           customerName,
           phone
         );
-        lead = await this.leadRepository.create(lead);
-        logSalesEvent('lead_created', lead.id, { phone, name: customerName });
-      }
-
-      if (!lead) {
+        leadData = await this.leadRepository.create(leadEntity);
+        leadEntity = this.convertToLeadEntity(leadData);
+        logSalesEvent('lead_created', leadEntity.id, { phone, name: customerName });
+      } else if (leadData) {
+        leadEntity = this.convertToLeadEntity(leadData);
+      } else {
         return {
           message: 'Olá! Para melhor atendê-lo, preciso que me informe seu nome.',
           nextStep: 'collect_name'
@@ -46,21 +92,21 @@ export class SalesFunnelUseCase {
       }
 
       // Add interaction
-      lead.addInteraction({
+      leadEntity.addInteraction({
         type: InteractionType.MESSAGE_RECEIVED,
         content: message,
         timestamp: new Date()
       });
 
       // Process based on message content and lead status
-      const response = await this.processBasedOnContext(lead, message.toLowerCase().trim());
+      const response = await this.processBasedOnContext(leadEntity, message.toLowerCase().trim());
       
       // Update lead
-      await this.leadRepository.update(lead.id, lead);
+      await this.leadRepository.update(leadEntity.id, leadEntity);
       
       return {
         ...response,
-        leadId: lead.id
+        leadId: leadEntity.id
       };
 
     } catch (error) {
@@ -181,15 +227,16 @@ export class SalesFunnelUseCase {
 
   private async getProductInfo(productType: ProductType): Promise<SalesFunnelResponse> {
     const products = await this.productRepository.findByType(productType);
-    const activeProduct = products.find(p => p.isActive);
+    const activeProductData = products.find(p => p.isActive);
 
-    if (!activeProduct) {
+    if (!activeProductData) {
       return {
         message: `😔 Desculpe, ${productType.toLowerCase()} não está disponível no momento.\n\nGostaria de ver outras opções?`,
         nextStep: 'show_alternatives'
       };
     }
 
+    const activeProduct = this.convertToProductEntity(activeProductData);
     const upsellType = activeProduct.getUpsellSuggestion();
     let upsellMessage = '';
     
@@ -211,17 +258,20 @@ export class SalesFunnelUseCase {
 
   private async getAvailabilityInfo(): Promise<SalesFunnelResponse> {
     const events = await this.eventRepository.findUpcoming();
-    const activeEvent = events[0];
+    const activeEventData = events[0];
 
-    if (!activeEvent) {
+    if (!activeEventData) {
       return {
         message: '⚠️ Não há eventos ativos no momento.\n\nEm breve teremos novidades! Quer que eu te avise?',
         shouldEscalate: true
       };
     }
 
+    const activeEvent = this.convertToEventEntity(activeEventData);
     const products = await this.productRepository.findByEventId(activeEvent.id);
-    const availableProducts = products.filter(p => p.isAvailable());
+    const availableProducts = products
+      .map(p => this.convertToProductEntity(p))
+      .filter(p => p.isAvailable());
 
     if (availableProducts.length === 0) {
       return {
@@ -247,17 +297,20 @@ export class SalesFunnelUseCase {
 
   private async getPricingInfo(): Promise<SalesFunnelResponse> {
     const events = await this.eventRepository.findUpcoming();
-    const activeEvent = events[0];
+    const activeEventData = events[0];
 
-    if (!activeEvent) {
+    if (!activeEventData) {
       return {
         message: '⚠️ Não há eventos ativos para consulta de preços.',
         shouldEscalate: true
       };
     }
 
+    const activeEvent = this.convertToEventEntity(activeEventData);
     const products = await this.productRepository.findByEventId(activeEvent.id);
-    const availableProducts = products.filter(p => p.isActive);
+    const availableProducts = products
+      .filter(p => p.isActive)
+      .map(p => this.convertToProductEntity(p));
 
     const pricing = availableProducts.map(p => 
       `${p.type}: ${p.getFormattedPrice()}`

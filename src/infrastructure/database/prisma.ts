@@ -6,37 +6,8 @@ declare global {
 }
 
 // Prevent multiple instances during hot reload in development
-const prisma = globalThis.__prisma || new PrismaClient({
-  log: [
-    { level: 'query', emit: 'event' },
-    { level: 'error', emit: 'event' },
-    { level: 'info', emit: 'event' },
-    { level: 'warn', emit: 'event' },
-  ],
-});
+const prisma = globalThis.__prisma || new PrismaClient();
 
-// Log database queries in development
-if (process.env.NODE_ENV === 'development') {
-  prisma.$on('query', (e) => {
-    logger.debug('Database Query', {
-      query: e.query,
-      params: e.params,
-      duration: `${e.duration}ms`,
-    });
-  });
-}
-
-prisma.$on('error', (e) => {
-  logger.error('Database Error', { error: e });
-});
-
-prisma.$on('info', (e) => {
-  logger.info('Database Info', { message: e.message });
-});
-
-prisma.$on('warn', (e) => {
-  logger.warn('Database Warning', { message: e.message });
-});
 
 if (process.env.NODE_ENV === 'development') {
   globalThis.__prisma = prisma;

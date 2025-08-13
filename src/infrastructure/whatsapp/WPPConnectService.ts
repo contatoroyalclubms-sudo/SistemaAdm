@@ -1,4 +1,4 @@
-import { create, Whatsapp, Message, MessageReceived } from '@wppconnect-team/wppconnect';
+import { create, Whatsapp, Message } from '@wppconnect-team/wppconnect';
 import { logger, logWhatsAppMessage } from '@/shared/logger';
 import { EventEmitter } from 'events';
 
@@ -38,7 +38,7 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
           logger.info('WhatsApp session status', { status: statusSession, session });
           this.emit('status', statusSession);
           
-          if (statusSession === 'authenticated') {
+          if (statusSession === 'isLogged') {
             this.isReady = true;
             this.qrCode = null;
             this.emit('ready');
@@ -123,7 +123,7 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
     return this.qrCode;
   }
 
-  private async handleIncomingMessage(message: MessageReceived): Promise<void> {
+  private async handleIncomingMessage(message: Message): Promise<void> {
     try {
       // Skip messages from groups, status updates, and own messages
       if (message.isGroupMsg || message.from === 'status@broadcast' || message.fromMe) {
@@ -139,7 +139,7 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
         type: message.type
       };
 
-      logWhatsAppMessage('incoming', message.from, 'bot', message.body);
+      logWhatsAppMessage('incoming', message.from, 'bot', message.body || '');
       this.emit('message', messageData);
 
     } catch (error) {

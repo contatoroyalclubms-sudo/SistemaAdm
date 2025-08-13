@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import { ProductType, LeadStatus, ReservationStatus, EventStatus } from '@/domain/entities';
+import { ProductType } from '@/domain/entities/Product';
+import { LeadStatus } from '@/domain/entities/Lead';
+import { ReservationStatus } from '@/domain/entities/Reservation';
+import { EventStatus } from '@/domain/entities/Event';
 
 // Phone validation for Brazilian numbers
 const phoneSchema = z.string()

@@ -134,6 +134,7 @@ export class LeadEntity implements Lead {
 
   getLastInteraction(): Interaction | null {
     if (this.interactions.length === 0) return null;
-    return this.interactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+    const sorted = this.interactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return sorted[0] || null;
   }
 }
