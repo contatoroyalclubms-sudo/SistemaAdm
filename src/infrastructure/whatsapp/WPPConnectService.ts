@@ -26,6 +26,37 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
     try {
       logger.info('Initializing WhatsApp client', { sessionName: this.sessionName });
 
+      const chromeFlags = process.env.CHROME_FLAGS 
+        ? process.env.CHROME_FLAGS.split(' ')
+        : [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--aggressive-cache-discard',
+            '--disable-cache',
+            '--disable-application-cache',
+            '--disable-offline-load-stale-cache',
+            '--disk-cache-size=0',
+            '--disable-background-networking',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--disable-sync',
+            '--disable-translate',
+            '--hide-scrollbars',
+            '--metrics-recording-only',
+            '--mute-audio',
+            '--safebrowsing-disable-auto-update',
+            '--ignore-certificate-errors',
+            '--ignore-ssl-errors',
+            '--ignore-certificate-errors-spki-list'
+          ];
+
       this.client = await create({
         session: this.sessionName,
         catchQR: (base64Qr, asciiQR) => {
@@ -49,16 +80,10 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
         useChrome: true,
         debug: false,
         logQR: false,
-        browserArgs: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
+        browserArgs: chromeFlags,
+        puppeteerOptions: {
+          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium'
+        }
       });
 
       // Set up message listeners

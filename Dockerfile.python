@@ -26,4 +26,4 @@ ENV PYTHONPATH=/app/src
 EXPOSE 8001
 
 # Start the AI service
-CMD ["python", "-m", "src.ia.cerebro_quantico.modelos_ensemble"]
+CMD ["python", "/app/src/ia/server.py"]
