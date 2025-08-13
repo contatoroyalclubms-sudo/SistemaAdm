@@ -1,6 +1,9 @@
 import { create, Whatsapp, Message } from '@wppconnect-team/wppconnect';
 import { logger, logWhatsAppMessage } from '@/shared/logger';
 import { EventEmitter } from 'events';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import { exec } from 'child_process';
 
 export interface IWhatsAppService {
   initialize(): Promise<void>;
@@ -25,6 +28,11 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
   async initialize(): Promise<void> {
     try {
       logger.info('Initializing WhatsApp client', { sessionName: this.sessionName });
+
+      await this.cleanupBrowserSessions();
+
+      const uniqueId = `${this.sessionName}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const userDataDir = `/tmp/chrome-${uniqueId}`;
 
       const chromeFlags = process.env.CHROME_FLAGS 
         ? process.env.CHROME_FLAGS.split(' ')
@@ -54,7 +62,9 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
             '--safebrowsing-disable-auto-update',
             '--ignore-certificate-errors',
             '--ignore-ssl-errors',
-            '--ignore-certificate-errors-spki-list'
+            '--ignore-certificate-errors-spki-list',
+            `--user-data-dir=${userDataDir}`,
+            '--disable-features=VizDisplayCompositor'
           ];
 
       this.client = await create({
@@ -203,6 +213,34 @@ export class WPPConnectService extends EventEmitter implements IWhatsAppService 
     
     // Ensure proper format for WhatsApp
     return cleaned + '@c.us';
+  }
+
+  private async cleanupBrowserSessions(): Promise<void> {
+    try {
+      const tokenPaths = [
+        '/app/tokens',
+        path.join(process.cwd(), 'tokens'),
+        path.join(process.cwd(), '.wwebjs_auth'),
+        path.join(process.cwd(), '.wwebjs_cache')
+      ];
+
+      for (const tokenPath of tokenPaths) {
+        if (await fs.pathExists(tokenPath)) {
+          logger.info('Cleaning up browser session directory', { path: tokenPath });
+          await fs.remove(tokenPath);
+        }
+      }
+
+      exec('pkill -f chrome || pkill -f chromium || true', (error) => {
+        if (error) {
+          logger.debug('No existing Chrome processes to kill');
+        }
+      });
+
+      logger.info('Browser session cleanup completed');
+    } catch (error) {
+      logger.warn('Failed to cleanup browser sessions', { error });
+    }
   }
 
   async close(): Promise<void> {

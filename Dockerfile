@@ -3,7 +3,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install system dependencies including OpenSSL for Prisma and NSS for Puppeteer
-RUN apk add --no-cache openssl openssl-dev libc6-compat nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont chromium chromium-chromedriver
+RUN apk add --no-cache git openssl openssl-dev libc6-compat nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont chromium chromium-chromedriver
 
 # Install dependencies
 COPY package*.json ./

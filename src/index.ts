@@ -4,9 +4,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { logger } from '@/shared/logger';
 import { connectDatabase } from '@/infrastructure/database/prisma';
-import { WPPConnectService } from '@/infrastructure/whatsapp/WPPConnectService';
-import { MessageHandler } from '@/presentation/handlers/MessageHandler';
+import { WhatsAppService } from '@/services/whatsapp';
 import { apiRoutes } from '@/presentation/routes';
+import { setWhatsAppDependencies } from '@/presentation/routes/whatsappRoutes';
 import { rateLimitMiddleware } from '@/presentation/middleware/rateLimitMiddleware';
 
 const app = express();
@@ -40,34 +40,18 @@ app.get('/health', (req, res) => {
 app.use('/api', apiRoutes);
 
 // WhatsApp Service
-let whatsappService: WPPConnectService;
-let messageHandler: MessageHandler;
+let whatsappService: any;
 
 async function initializeWhatsApp() {
   try {
-    whatsappService = new WPPConnectService(process.env.WA_SESSION_NAME);
-    messageHandler = new MessageHandler(whatsappService);
+    whatsappService = new WhatsAppService();
     
-    // Set up event listeners
-    whatsappService.on('qr', (qr: string) => {
-      logger.info('WhatsApp QR Code generated');
-      console.log('\n📱 Escaneie o QR Code abaixo com o WhatsApp:\n');
-      console.log('QR Code available at: http://localhost:' + port + '/api/whatsapp/qr');
-    });
-
-    whatsappService.on('ready', () => {
-      logger.info('WhatsApp client is ready! 🚀');
-    });
-
-    whatsappService.on('message', async (message: any) => {
-      await messageHandler.handleMessage(message);
-    });
-
-    whatsappService.on('status', (status: string) => {
-      logger.info('WhatsApp status changed', { status });
-    });
-
+    logger.info('Initializing WhatsApp with Baileys...');
     await whatsappService.initialize();
+    
+    setWhatsAppDependencies(whatsappService, null);
+    
+    logger.info('✅ WhatsApp service initialized successfully with Baileys!');
     
   } catch (error) {
     logger.error('Failed to initialize WhatsApp service', { error });
