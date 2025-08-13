@@ -1,0 +1,62 @@
+# 🎼 CONFIGURAÇÕES TRANSCENDENTAIS DO ECOSSISTEMA
+
+app:
+  name: "SistemaAdm Transcendental"
+  version: "1.0.0-transcendental"
+  environment: "development"
+  debug: true
+  host: "0.0.0.0"
+  port: 8000
+
+database:
+  url: "sqlite:///./sistemaadm.db"  # SQLite for development
+  echo: false
+
+redis:
+  url: "redis://localhost:6379/0"
+  decode_responses: true
+  max_connections: 50
+
+security:
+  jwt_secret: "chave-ultra-secreta-transcendental-dev"
+  jwt_expiration_hours: 24
+  password_rounds: 12
+
+trading:
+  enabled: true
+  exchanges:
+    - binance
+    - coinbase
+  default_pair: "BTC/USDT"
+  risk_management:
+    max_drawdown: 0.15
+    position_size: 0.02
+    stop_loss: 0.05
+
+ia:
+  models_enabled: true
+  ensemble_models:
+    - random_forest
+    - xgboost
+    - neural_network
+    - svm
+    - linear_regression
+    - temporal_model
+  confidence_threshold: 0.6
+  sentiment_sources:
+    - fear_greed_index
+    - reddit_simulation
+    - twitter_simulation
+    - news_simulation
+
+monitoring:
+  enabled: true
+  log_level: "INFO"
+
+api:
+  cors_enabled: true
+  rate_limiting:
+    requests_per_minute: 1000
+  documentation:
+    enabled: true
+    title: "SistemaAdm Transcendental API"
