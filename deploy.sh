@@ -10,7 +10,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if ! docker compose version &> /dev/null; then
     echo "❌ Docker Compose is not installed. Please install Docker Compose first."
     exit 1
 fi
@@ -28,16 +28,16 @@ if [ ! -f .env ]; then
 fi
 
 echo "🔨 Building Docker images..."
-docker-compose build
+docker compose build
 
 echo "🚀 Starting services..."
-docker-compose up -d
+docker compose up -d
 
 echo "⏳ Waiting for services to start..."
 sleep 10
 
 echo "🔍 Checking service health..."
-if docker-compose ps | grep -q "Up"; then
+if docker compose ps | grep -q "Up"; then
     echo "✅ Services are running!"
     echo ""
     echo "🎭 ======================================"
@@ -46,12 +46,12 @@ if docker-compose ps | grep -q "Up"; then
     echo "🚀 WhatsApp Bot: http://localhost:8080"
     echo "📱 QR Code: http://localhost:8080/api/whatsapp/qr"
     echo "📊 Health Check: http://localhost:8080/health"
-    echo "📋 Logs: docker-compose logs -f"
-    echo "🛑 Stop: docker-compose down"
+    echo "📋 Logs: docker compose logs -f"
+    echo "🛑 Stop: docker compose down"
     echo "======================================"
     echo ""
     echo "📱 Scan the QR code with WhatsApp to connect!"
 else
-    echo "❌ Some services failed to start. Check logs with: docker-compose logs"
+    echo "❌ Some services failed to start. Check logs with: docker compose logs"
     exit 1
 fi
